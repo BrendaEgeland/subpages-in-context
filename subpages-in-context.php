@@ -100,7 +100,7 @@ class Subpages_In_Context extends WP_Widget {
 		global $wpdb, $post;
 		extract( $args );
 
-    	// We'll be figuring out whether to display the widget at all
+		// We'll be figuring out whether to display the widget at all
 		$show_widget = true;
 
 		// Find the top page to be displayed. This is either from the widget
