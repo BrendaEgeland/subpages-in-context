@@ -3,7 +3,7 @@ Contributors: brendaegeland
 Tags: pages, navigation, widgets, subpages
 Requires at least: 3.0
 Tested up to: 3.4.1
-Stable tag: 0.1
+Stable tag: 0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,5 +58,14 @@ on __any__ of the pages in the About subtree. Notice that the top-most ancestor,
 
 == Changelog ==
 
+= 0.2 =
+* Fixed bug in widget form settings
+* Added option to omit top-most page from output list
+
 = 0.1 =
 * Initial version.
+
+== Upgrade Notice ==
+
+= 0.2 =
+Adds option to omit top-most page from output list.
