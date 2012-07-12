@@ -191,8 +191,8 @@ class Subpages_In_Context extends WP_Widget {
 		$instance = $old_instance;
 
 		$instance['title']       = strip_tags( $new_instance['title'] );
-		$instance['show_title']  = $new_instance['show_title'];
-		$instance['top_page']    = ( $new_instance['top_page'] == 'on' );
+		$instance['show_title']  = ( $new_instance['show_title'] == "on" );
+		$instance['top_page']    = $new_instance['top_page'];
 		$instance['menu_class']  = $new_instance['menu_class'];
 		$instance['link_before'] = $new_instance['link_before'];
 		$instance['link_after']  = $new_instance['link_after'];
@@ -213,7 +213,7 @@ class Subpages_In_Context extends WP_Widget {
 		$instance = wp_parse_args( (array) $instance, array(
 			'title'         => '',
 			'show_title'    => true,
-			'top_page'      => '0',
+			'top_page'      => '',
 			'menu_class'    => '',
 			'link_before'   => '',
 			'link_after'    => ''
