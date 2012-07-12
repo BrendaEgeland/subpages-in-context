@@ -4,7 +4,7 @@
 Plugin Name: Subpages in Context
 Plugin URI: http://www.redletterdesign.net/wp/subpages-in-context
 Description: Lists pages and subpages for a given page, or the top ancestor of the current page (default)
-Version: 0.1
+Version: 0.2
 Author: Brenda Egeland
 Author URI: http://www.redletterdesign.net/
 License: GPL2
@@ -29,7 +29,9 @@ Using
 /*
 Version History
 
-0.0.1 2012-07-04 Initial development.
+0.2 2012-07-11 Fixed bug in widget form settings. Added option to omit top-most page from output list.
+
+0.1 2012-07-04 Initial development.
 
 /*
 
@@ -100,6 +102,10 @@ class Subpages_In_Context extends WP_Widget {
 		global $wpdb, $post;
 		extract( $args );
 
+		// because of changes made in 0.1->0.2, check to see if $instance['show_topmost'] exists,
+		// and if it does not, set it to true, which is the pre-update functionality
+		if (!isset($instance['show_topmost'])) { $instance['show_topmost'] == true; }
+
 		// We'll be figuring out whether to display the widget at all
 		$show_widget = true;
 
@@ -150,11 +156,6 @@ class Subpages_In_Context extends WP_Widget {
 			$link_addons .= ( $instance['link_before'] ) ? '&link_before='.$instance['link_before'] : '';
 			$link_addons .= ( $instance['link_after']  ) ? '&link_after='.$instance['link_after'] : '';
 
-			// The first element of the list is the top-most page to be displayed...
-			$top_page_li = wp_list_pages( 'title_li=&include='.$top_page.'&echo=0'.$link_addons );
-			// ...followed by its subpages
-			$children = wp_list_pages( 'title_li=&child_of='.$top_page.'&echo=0'.$link_addons );
-
 			// Optional menu class
 			$menu_class = ($instance['menu_class']) ? ' class="'.$instance['menu_class'].'"' : '';
 
@@ -162,8 +163,12 @@ class Subpages_In_Context extends WP_Widget {
 			?>
 			<ul<?php echo $menu_class;?>>
 			<?php
-				echo $top_page_li;
-				echo $children;
+				// The first element of the list is the top-most page to be displayed, if that option is selected
+				if ($instance['show_topmost']) {
+					wp_list_pages( 'title_li=&include='.$top_page.$link_addons );
+				}
+				// ...followed by its subpages
+				wp_list_pages( 'title_li=&child_of='.$top_page.$link_addons );
 			?>
 			</ul>
 			<?php
@@ -190,12 +195,13 @@ class Subpages_In_Context extends WP_Widget {
 
 		$instance = $old_instance;
 
-		$instance['title']       = strip_tags( $new_instance['title'] );
-		$instance['show_title']  = ( $new_instance['show_title'] == "on" );
-		$instance['top_page']    = $new_instance['top_page'];
-		$instance['menu_class']  = $new_instance['menu_class'];
-		$instance['link_before'] = $new_instance['link_before'];
-		$instance['link_after']  = $new_instance['link_after'];
+		$instance['title']        = strip_tags( $new_instance['title'] );
+		$instance['show_title']   = ( $new_instance['show_title'] == "on" );
+		$instance['top_page']     = $new_instance['top_page'];
+		$instance['show_topmost'] = ( isset($new_instance['show_topmost']) );
+		$instance['menu_class']   = $new_instance['menu_class'];
+		$instance['link_before']  = $new_instance['link_before'];
+		$instance['link_after']   = $new_instance['link_after'];
 
 		return $instance;
 
@@ -210,10 +216,12 @@ class Subpages_In_Context extends WP_Widget {
 	 * @param array $instance Previously saved values from database.
 	 */
 	public function form( $instance ) {
+	
 		$instance = wp_parse_args( (array) $instance, array(
 			'title'         => '',
 			'show_title'    => true,
 			'top_page'      => '',
+			'show_topmost'  => true,
 			'menu_class'    => '',
 			'link_before'   => '',
 			'link_after'    => ''
@@ -251,6 +259,15 @@ class Subpages_In_Context extends WP_Widget {
 		<p class="description">Selecting Default will figure out the top-most ancestor
 			of the page currently being displayed, and will display nothing on blog pages.</p>
 
+		<!-- Include top-most page in list ? -->
+		<p><label for="<?php echo $this->get_field_name( 'show_topmost' ); ?>">Include top-most page as first item in list?
+		<input
+			type="checkbox"
+			id="<?php echo $this->get_field_id( 'show_topmost' );?>"
+			name="<?php echo $this->get_field_name( 'show_topmost' );?>"
+			value="on"
+			<?php echo ($instance['show_topmost']) ? ' checked="checked"' : '';?> /></label></p>
+			
 		<!-- Menu Class -->
 		<p><label for="<?php echo $this->get_field_name( 'menu_class' ); ?>">Menu Class:</label>
 		<input class="widefat"
@@ -266,8 +283,8 @@ class Subpages_In_Context extends WP_Widget {
 			type="text"
 			id="<?php echo $this->get_field_id( 'link_before' );?>"
 			name="<?php echo $this->get_field_name( 'link_before' );?>"
-			value="<?php echo htmlentities($instance['link_before']);?>" /></p>
-		<p class="description">Optional html to add before links</p>
+			value="<?php echo htmlentities($instance['link_before']);?>" /><br />
+		<span class="description">Optional html to add before links</span></p>
 
 		<!-- Link After -->
 		<p><label for="<?php echo $this->get_field_name( 'link_after' ); ?>">After Links</label>
@@ -275,8 +292,8 @@ class Subpages_In_Context extends WP_Widget {
 			type="text"
 			id="<?php echo $this->get_field_id( 'link_after' );?>"
 			name="<?php echo $this->get_field_name( 'link_after' );?>"
-			value="<?php echo htmlentities($instance['link_after']);?>" /></p>
-		<p class="description">Optional html to add after links</p>
+			value="<?php echo htmlentities($instance['link_after']);?>" /><br  />
+		<span class="description">Optional html to add after links</span></p>
 
 
 		<?php
